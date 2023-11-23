@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>A Short Statistics Primer</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Susan Vanderplas" />
+    <meta name="date" content="2021-07-25" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/font-awesome/css/all.min.css" rel="stylesheet" />
+    <link href="libs/font-awesome/css/v4-shims.min.css" rel="stylesheet" />
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Handlee&family=Montserrat:ital,wght@0,400;0,500;1,400;1,500&family=Roboto:ital,wght@0,500;1,500&display=swap');
+    </style>
+    <link rel="stylesheet" href="unl.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# A Short Statistics Primer
+### Susan Vanderplas
+### July 25, 2021
+
+---
+
+
+
+
+
+# Outline
+
+- The Logic of Statistical Hypothesis Testing
+
+- Simulation Based Analysis
+
+- Estimating Values
+
+- Experimental Design
+
+---
+# A Lady Tasting Tea
+
+Can someone tell whether tea or milk is added first to a cup?
+
+- 4 cups of tea with milk first <i class="fa fa-coffee" role="presentation" aria-label="coffee icon" style="color: #d2b48c"></i>, 4 cups of tea with tea first <i class="fa fa-coffee" role="presentation" aria-label="coffee icon" style="color: #835C3B"></i>
+
+- Randomize the order
+
+- Test the cups and make predictions for all 8 cups
+
+.center.large.cerulean.emph[What is the probability that someone gets all 8 correct?]
+
+---
+# A Lady Tasting Tea
+
+- If the 4 milk cups  <i class="fa fa-coffee" role="presentation" aria-label="coffee icon" style="color: #d2b48c"></i> are correctly identified, so are the 4 tea cups <i class="fa fa-coffee" role="presentation" aria-label="coffee icon" style="color: #835C3B"></i>
+
+- If we assume that the taster is just guessing, we could just as easily flip 4 coins
+    
+    - Class option: Have each student flip a coin 4x
+    
+    - Computer option: Simulate 4 coin flips x N trials
+
+---
+# A Lady Tasting Tea
+
+.large.emph.cerulean[Statistical evaluation]
+
+- Null hypothesis: Taster is guessing
+
+- If our experimental results are likely to occur by random chance, we can't really say whether the taster is guessing or not    
+<i class="fa fa-share" role="presentation" aria-label="share icon"></i> We fail to reject the null hypothesis
+
+- If our experimental results are not likely to occur by random chance, we may decide it's more likely that there is another explanation... the taster knows their stuff!
+
+.large.emph.cerulean.center[What matters is that we have strong evidence that our results could not occur with random chance alone.]
+
+---
+class: inverse
+# Try it out
+
+Go to shiny.srvanderplas.com/APL and start with the Tea Tasting tab. 
+
+- What effect does the number of simulations have on the results?
+
+- What effect does the number of test cups have on the results?
+    - Assuming the number of observed cups is the same as the number of test cups
+    
+    - Assuming the number of observed cups is less than the number of test cups
+
+---
+# Hypothesis Testing Logic
+
+.pull-left[
+1. Run an experiment and generate an observed value
+
+2. Simulate a large number of experiments under random chance (the null hypothesis)
+
+3. Compare the observed value to the results of the simulated experiments
+
+4. Decide whether the observed value is plausible under random chance, or it is more likely that the results would happen if the null hypothesis is wrong
+].pull-right[
+![](simulation-logic.svg)
+]
+
+---
+# Theory-based Statistics
+.pull-left[
+1. Run an experiment and generate a test statistic (t, z, F, `\(\chi^2\)`)
+
+2. Compare the observed value to the theoretical distribution
+
+3. Decide whether the observed value is plausible under random chance, or it is more likely that the results would happen if the null hypothesis is wrong
+].pull-right[
+![](theory-logic.svg)
+]
+
+---
+class: inverse
+# Try it out
+
+
+Go to shiny.srvanderplas.com/APL and start with the Distributions tab. 
+
+- What changes when you change distribution?
+
+- How many samples do you need for the simulation histogram to look similar to the theoretical distribution?
+
+- What effect does setting your observed value to be larger have on the p-value?    
+Note: At this point, we are doing tests examining values greater than the observed value. This will obviously not always hold true.
+
+- How different is the simulation p-value from the theoretical p-value? Does this change when you increase the number of samples?
+    
+---
+## Underlying Logic - Testing
+
+- In both cases, the goal is to determine if the experiment results are compatible with the null hypothesis
+
+- if the region that is "more extreme" than the observed value is very small, then the experimental results are surprising
+    - This suggests the null hypothesis might not be reliable
+    - May lead to rejecting the null hypothesis in favor of the alternative (if the null is false, what does that imply?)
+
+- the region that is "more extreme" than the observed value is summarized as the p-value -- the area of that region.
+    - p-values lower than `\(\alpha\)`, a pre-specified cutoff (0.05 or 0.01 is common) are considered "statistically significant" - that is, they should lead to a rejection of the null hypothesis
+
+---
+## Underlying Logic - P-values
+
+![](p-value-logic.svg)
+
+
+---
+## Underlying Logic - Two Sided Tests
+
+![](two-sided-test.svg)
+
+You can experiment with two-sided tests here:
+
+https://shiny.srvanderplas.com/APL/ and click on "One Continuous Variable"
+
+---
+# Confidence Intervals
+
+- Another way to use statistics is to get a range of "plausible" values based on the estimate + variability
+
+- This is called a **confidence interval**
+
+.center[&lt;img src="confidence-interval-best-est-uncertanty.svg" width="40%"/&gt;]
+
+
+---
+# Confidence Intervals
+
+- Every confidence interval has a "level" of `\(1-\alpha\)`, just like every hypothesis test has a significance level `\(\alpha\)`
+
+- Confidence intervals with higher levels (e.g. .99 instead of .95) are wider
+
+- Interval width depends on 
+    - sample size
+    - variability
+    - confidence level
+    
+- A CI of (A, B) is read as "We are 95% confident that the true value of \_\_\_\_\_\_\_\_\_ lies between A and B"
+
+---
+class:middle,inverse
+# Experimental Design
+
+---
+## One Categorical Variable
+
+- Statistic: # Successes (out of # Trials)
+
+- Simulation method: Flip coins `\((p = 0.5)\)`, weighted spinners `\((p\neq 0.5)\)`
+
+- Theoretical distribution: Binomial
+
+https://shiny.srvanderplas.com/APL/ and click on "One Categorical Variable"
+
+
+
+---
+## One Continuous Variable
+
+- Statistic: `$$t = \frac{\overline x - \mu}{s/\sqrt{n}}$$`
+where `\(\overline x\)` is the sample mean, `\(s\)` is the sample standard deviation, `\(\mu\)` is the hypothesized mean, and `\(n\)` is the sample size
+
+- Simulation method: none
+
+- Theoretical distribution: `\(t\)` with `\(n-1\)` degrees of freedom
+
+https://shiny.srvanderplas.com/APL/ and click on "One Continuous Variable"
+
+---
+## Categorical + Continuous Variables
+### Two-group Tests
+
+- Categorical variable: Group 1 or Group 2?
+- Continuous variable: Some measurement
+
+- Statistic: `\(\overline x_1 - \overline x_2\)`
+
+- Simulation method: shuffle group labels (flash cards if by hand)
+
+- Theoretical distribution: `\(t\)` (degrees of freedom are a bit complicated)
+
+
+https://shiny.srvanderplas.com/APL/ and click on "Categorical + Continuous Variables"
+
+---
+## Categorical + Continuous Variables
+### Two-group Tests
+
+
+![A two-sample experiment randomly divides up a sample of experimental units into two groups and calculates the sample mean for each group.](unpaired-test.svg)
+
+
+---
+## Categorical + Continuous Variables
+### Repeated Measures
+
+![](repeated-measures.svg)
+
+---
+## Categorical + Continuous Variables
+### Matched Pairs
+
+![](matched pairs.svg)
+
+
+---
+## Analysis of Variance
+
+In some cases, we're interested in multiple groups, not just 2. For these situations, we use ANOVA (ANalysis Of VAriance).
+
+Suppose we have a group of schoolchildren separated by grade, and we want to examine the relationship between grade and height.
+
+![](anova-class.svg)
+
+---
+## Analysis of Variance
+
+.pull-left[
+![](anova-class-means.svg)
+].pull-right[
+If height is important, students in a single grade should be more similar than students across different grades.
+]
+
+---
+## Analysis of Variance
+
+.pull-left[
+To determine similarity within groups, we square the deviations from the group mean and add them up - this is the within-groups sum-of-squares.
+
+We can then calculate the between-groups sum-of-squares as the sum of squared differences of the class average and the overall average for each student.
+].pull-right[
+![](anova-class-deviations.svg)
+]
+
+---
+## Analysis of Variance
+
+Results from ANOVA are shown in tables like this: 
+
+
+
+|Factor    | Df| Sum Sq|   Mean Sq| F value|   Pr(&gt;F)|
+|:---------|--:|------:|---------:|-------:|--------:|
+|grade     |  2|    112| 56.000000|   26.25| 1.26e-05|
+|Residuals | 15|     32|  2.133333|        |         |
+|Total     | 17|    144|          |        |         |
+
+The F-value is the statistic, and is compared to an F(df1, df2) distribution - in this case, F(2, 15) to get a p-value.
+
+---
+## Two Continuous Variables
+
+
+![Two continuous variables may have a linear relationship](linear-trend.svg)
+
+---
+## Two Continuous Variables
+
+![Two continuous variables may have a linear relationship](linear-regression-1.svg)
+
+---
+## Two Continuous Variables
+
+
+![Two continuous variables may have a linear relationship](linear-regression-diff-lines.svg)
+
+
+---
+## Two Continuous Variables
+
+- Continuous variables: `\(x\)` and `\(y\)`
+
+- Statistic: `\(a\)`, the sample slope
+
+- Simulation method: shuffle values of `\(y\)` relative to `\(x\)`
+
+- Theoretical distribution: `\(t_{n-2}\)`, where `\(n\)` is the number of observations
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

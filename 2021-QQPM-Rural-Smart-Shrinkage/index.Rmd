@@ -1,0 +1,326 @@
+---
+title: "Exploring Rural Quality of Life Using Data Science and Public Data"
+author: "Susan Vanderplas"
+date: "April 2, 2021"
+output:
+  xaringan::moon_reader:
+    css: ["default", "unl.css"]
+    lib_dir: libs
+    includes:
+      in_header: header.html
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+class:inverse
+## About Me
+
+
+- PhD/MS in Statistics from Iowa State
+- BS in Applied Math and Psychology from Texas A&M
+
+- Research Areas
+  - Forensic Science - automated algorithms for pattern evidence
+  - Data Science - automation, data pipelines, tools
+  - Visualization - perception, design, and implementation
+
+--
+
+### Fundamental Goals
+
+  - .emph.cerulean[Make visualizations designed to leverage .underline[human perception] to understand data    
+  (and communicate about data)]
+
+--
+
+  - .emph.cerulean[Design algorithms to mimic people's capabilities (vision/perception)]
+
+
+---
+## Rural Smart Shrinkage
+
+```{r, echo = F, message = F, warning = F, eval = F}
+library(tidyverse)
+shrink_data <- readxl::read_xls("PopulationEstimates.xls", skip = 2) %>%
+  pivot_longer(-c(1:8), names_to = "variable", values_to = "value") %>%
+  mutate(year = str_extract(variable, "\\d{4}"),
+         variable = str_remove(variable, year) %>% str_replace_all("_", " ") %>% str_squish(),
+         year = as.numeric(year)) 
+shrink_data %>%
+  filter(variable == "POP ESTIMATE", State == "IA", FIPStxt != "19000") %>%
+ggplot(aes(x = year, y = value, group = Area_Name)) + geom_line() + scale_y_log10() + facet_wrap(~Economic_typology_2015)
+```
+
+- Rural towns are losing population steadily
+
+  - Shrinking tax bases lead to fewer services
+  - Shrinking population may shrink social interaction opportunities
+  - Schools, businesses, etc. may move to nearby towns
+
+--
+
+- .red[Project Question:] How do some cities manage to maintain quality of life for residents amid shrinking populations?
+  - Can this be taught?
+
+---
+## Complications
+
+- Quality of Life is a subjective assessment
+  - Iowa Small Town poll has measured subjective QOL by decade for one small town in each of the 99 counties in Iowa (same town each year)
+  - Survey response rates keep decreasing over time
+
+- There are objective measures of things that contribute to QOL available in public datasets
+.small.emph[
+- School ratings
+- Town budgets for services
+- Access to medical care, shopping, etc.
+- Transportation trends
+- Demographic shifts
+- City level cooperative agreements with other government entities and NGOs
+]
+
+---
+## Complications
+
+- Quality of Life is a subjective assessment
+  - Iowa Small Town poll has measured subjective QOL by decade for one small town in each of the 99 counties in Iowa (same town each year)
+  - Survey response rates keep decreasing over time
+
+- There are objective measures of things that contribute to QOL available in public datasets
+
+- .red[Project Question:] How do we leverage .emph.cerulean[data science] and .emph.cerulean[survey design] to reduce the length of the survey and maintain reliability?
+    - Can objective measures of QOL contributors be incorporated into the survey design?
+    - Can we focus on estimating only things that objective measurements don't capture?
+  
+---
+## Basic Idea
+
+- Assemble publicly available data sets
+    - Available over lots of different geographic measurements    
+    Lat/Long, Zip code (5 or 9 digit, changes over time), Address, City, Census units, School District, County
+    - May not be complete for small towns    
+    (ACS estimates aren't useful in these areas - not enough people surveyed)
+
+- Assess correlation between public data and Iowa Small Town Poll QOL estimates on different dimensions
+
+- .emph.cerulean[Survey Stats problems]: 
+    - Incorporate this information into survey designs
+    - Change up design of the survey to split questions across participants, etc. 
+
+
+---
+## What Datasets Speak to QOL?
+
+- [Post Office locations](https://data.iowa.gov/Boundaries/ZIP-Code-Tabulation-Areas-ZCTAs-/)
+    - Zip code tabulation areas + lat/long of post offices
+    
+
+- [Physical and Cultural Geographic Features](https://data.iowa.gov/Physical-Geography/Iowa-Physical-and-Cultural-Geographic-Features/uedc-2fk7) 
+    - Lat/long + feature type - churches, landmarks, post offices, bridges, parks, cemeteries, ...
+    - Very incomplete
+    
+
+
+---
+## What Datasets Speak to QOL?
+
+- [Assisted Living Facilities](https://data.iowa.gov/Health-Providers-Services/Assisted-Living-Programs-in-Iowa/67aj-bdft)
+    - Last updated in 2017
+    - Includes occupancy, some lat/long information, and county
+    
+- [Registered Retirement Facilities](https://data.iowa.gov/Regulation/Registered-Retirement-Facilities-in-Iowa/cvnj-m3t8)
+    - Address/Zip and lat/long information
+    - No occupancy information
+
+- [Fire Department Census](https://data.iowa.gov/Emergency-Management/Iowa-Fire-Department-Census/hv43-6ksq)
+    - Lat/long and address information, staff type and number of firefighters
+
+- Licensed Childcare Providers
+    - Number of children accommodated, level of care/training, home vs. center based care
+    - Not comprehensive - not all childcare providers are licensed
+
+---
+## What Datasets Speak to QOL?
+
+- [School Building Directory](https://data.iowa.gov/browse?q=school%20building&sortBy=relevance)
+    - public and private school buildings for the current school year (but last updated Oct 31, 2019)
+    - Grades in the school, location, district, area education agency
+    
+- [School District Revenue](https://data.iowa.gov/School-Finance/Iowa-School-District-Revenues-by-Fiscal-Year/pf4i-4nww)
+
+- [4 year HS Graduation Rates](https://data.iowa.gov/Primary-Secondary-Ed/4-Year-Graduation-Rates-in-Iowa-by-Cohort-and-Publ/tqti-3w6t)
+
+- [Liquor - Sales and Stores](https://data.iowa.gov/Sales-Distribution/Iowa-Liquor-Sales/m3tr-qhgy)
+    - A measure of local commerce - even most gas stations are licensed liquor stores
+    - Amount sold may indicate other local issues
+    - Does not include restaurant/bar sales
+
+
+---
+## What Datasets Speak to QOL?
+
+- City Budget data
+  - Expenditures on items like snow removal, debt, parks/rec, economic development
+  - Revenue from water, electric, parks and rec, animal control, contributions
+  - Additional economic calculations of City Fiscal capacity, etc.
+
+- ["28E" cooperative agreements](https://sos.iowa.gov/search/28ESearch.html)
+  - Agreement between different governments or organizations to share resources or collaborate on a project
+  - E.g. two small towns might share fire/police services
+  - Some basic information in the table + full text of agreements in PDF form (not OCR'd)
+  
+
+  
+
+---
+## What Datasets Speak to QOL?
+
+- County level data
+    - Child abuse/DHS reports
+    - Family Investment Program (welfare) payments
+    - Food Assistance Program 
+    - Medicaid Payments
+    - Quarterly sales taxes
+    - Unemployment Insurance Benefit Payments
+
+- Much less specific, but in many cases may be relevant
+
+---
+## Wish List for Data
+
+- Locations of grocery and hardware stores
+    - Could pay for access via Square or some other data source
+    - Accuracy/frequency of updates
+    - Most data sources are meant for app development and don't allow for research applications in terms-of-use
+    
+- Employment data by town
+
+- ACS data at the town level
+
+- Property tax records
+    - 99 counties, 99 different property tax record systems.
+
+---
+## Crazy Ideas
+
+- This summer: Use crop diversity *around* the town to try to assess integration between agricultural sector and town life
+    - Hypothesis: Greater crop rotation and more diversity of crops = greater engagement with local sustainable ag and local economy
+
+- Transportation data: Try to assess commute time/direction based on transit records
+    - Very iffy with public data, could pay for private access
+
+---
+class:inverse,middle,center
+# Preliminary Analysis
+
+---
+## Preliminary Analysis
+
+- 7 factors for QOL in the Iowa Small Town Poll
+  - Housing
+  - Jobs
+  - Child Services
+  - Medical
+  - Government
+  - Senior Services
+  - K-12
+  
+- Working with % of responses that are either Good or Very Good (GVG)
+  
+- Model: Random Forest
+  - Fit many small decision trees to the data with a limited, randomly selected number of predictors
+  - Let the decision trees "vote" on the outcome
+
+---
+## Preliminary Analysis (pre COVID)
+
+![Random Forest model results](rf-results.png)
+
+
+???
+
+- City Budget variables have been scaled to population size to allow for comparison of values from cities of different sizes
+
+- Missing data - in some cases, missing means "this doesn't exist here" - like hospital beds - but in other cases it indicates an incomplete data set. Assessment of how to handle missing data was handled by dataset and was based on the individual assessment of each data source's quality and the implications for "missingness"
+
+- Most important variables (as measured by increase in MSE when the variable is excluded)
+
+- Some factors contributing to QOL are more explainable than others
+
+- K-12 has anecdotally been linked to the success of the local HS sports teams, rather than academic factors
+    - Originally planned to track that information... but COVID
+    
+
+---
+## Preliminary Analysis (pre COVID)
+
+.center[
+![Permutation Importance](rf-permutation.png)
+]
+
+???
+
+Random Forest variable importance isn't useful by itself
+
+- Permute the variable and include in the model to see what "baseline" importance is
+
+- If actual importance (red) is significantly higher than baseline importance, you know the variable is useful
+
+---
+class:inverse,middle,center
+
+# What's next?
+
+---
+## Statistical Analysis
+
+- Compile a single data set
+    - rows: Each town
+    - columns: Each variable with appropriate spatial aggregation    
+    e.g. distance to service instead of lat/long
+
+- Unsupervised analysis
+    - Which towns are most similar based only on the public data?
+    
+- Supervised analysis
+    - Which variables are most associated with subjectively reported quality of life (in the 99 towns in the ISTP)?
+    
+
+---
+## Visualization
+
+- Create a town-focused dashboard that lets leaders see how their town compares to other similar towns (geographically and as measured by the unsupervised statistical analysis)
+
+- Goal is to help towns see what strategies for maintaining QOL work and don't
+
+- Emphasis on things towns are empowered to change
+    - Can't focus on e.g. agricultural policy
+    - City budgets, partnerships with outside entities, services that matter and don't
+    
+- How do we best design charts/graphs/UI to make people feel empowered and help them explore the data with an open mind?
+    - How do we incorporate statistical analyses into this? Much of the data will provide qualitative differences but not statistically significant differences.
+    
+---
+## The Elephant in the Room
+
+- COVID-19 has really thrown a wrench into the system
+    - Importance of local high-speed internet, medical infrastructure
+    - Less importance on e.g. snow removal and city recreational facilities
+
+- Accounting for the varied effects of COVID is going to be... interesting
+
+---
+class:inverse,middle
+## Discussion
+
+- What public data sources do you use to augment your research?
+
+- How is COVID currently messing with your projects?
+
+- What visualization and communication challenges do you have when translating your project into stakeholder-friendly action?
